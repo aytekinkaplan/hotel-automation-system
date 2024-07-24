@@ -1,15 +1,11 @@
-// routes/user.js
-
 const express = require("express");
 const router = express.Router();
 const userController = require("../controllers/userController");
 
-// Kontrol edin: userController'da tüm fonksiyonlar doğru tanımlı mı?
-router.post("/register", userController.register); // Bu fonksiyon tanımlı mı?
-router.post("/login", userController.login); // Bu fonksiyon tanımlı mı?
-router.get("/users", userController.getAllUsers); // Bu fonksiyon tanımlı mı?
-router.get("/users/:id", userController.getUser); // Bu fonksiyon tanımlı mı?
-router.put("/users/:id", userController.updateUser); // Bu fonksiyon tanımlı mı?
-router.delete("/users/:id", userController.deleteUser); // Bu fonksiyon tanımlı mı?
+router.post("/", userController.createUser);
+router.get("/", userController.getUsers);
+router.get("/:id", userController.getUserById);
+router.put("/:id", userController.updateUser);
+router.delete("/:id", userController.deleteUser);
 
 module.exports = router;

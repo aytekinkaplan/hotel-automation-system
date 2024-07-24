@@ -1,21 +1,15 @@
 const express = require("express");
-const mongoose = require("mongoose");
-const bodyParser = require("body-parser");
-const userRoutes = require("./routes/user");
-const hotelRoutes = require("./routes/hotel");
-
-require("dotenv").config();
-
 const app = express();
+const hotelRoutes = require("./routes/hotel");
+const userRoutes = require("./routes/user");
 
-app.use(bodyParser.json());
+app.use(express.json());
 
-mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
-
-app.use("/api/users", userRoutes);
 app.use("/api/hotels", hotelRoutes);
+app.use("/api/users", userRoutes);
+
+app.use((req, res, next) => {
+  res.status(404).json({ message: "Not Found" });
+});
 
 module.exports = app;

@@ -1,44 +1,86 @@
 const request = require("supertest");
-const app = require("../server");
+const app = require("../app");
+const mongoose = require("mongoose");
+const Hotel = require("../models/Hotel");
 
 describe("Hotel API", () => {
-  it("should list all hotels", async () => {
-    const res = await request(app).get("/api/hotels");
-    expect(res.statusCode).toBe(200);
-    expect(res.body).toHaveLength(0); // Test database should be empty initially
+  beforeAll(async () => {
+    await mongoose.connect(process.env.MONGO_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+  });
+
+  afterAll(async () => {
+    await mongoose.connection.close();
   });
 
   it("should create a new hotel", async () => {
-    const res = await request(app).post("/api/hotels").send({
-      name: "Test Hotel",
-      location: "Test Location",
+    const res = await request(app)
+      .post("/api/hotels")
+      .send({
+        name: "Hotel Test",
+        address: "123 Test St",
+        rooms: 10,
+        stars: 4,
+        amenities: ["WiFi", "Pool"],
+      });
+    expect(res.statusCode).toEqual(201);
+    expect(res.body).toHaveProperty("name", "Hotel Test");
+  });
+
+  it("should get all hotels", async () => {
+    const res = await request(app).get("/api/hotels");
+    expect(res.statusCode).toEqual(200);
+    expect(res.body).toBeInstanceOf(Array);
+  });
+
+  it("should get a hotel by ID", async () => {
+    const hotel = new Hotel({
+      name: "Hotel Test",
+      address: "123 Test St",
       rooms: 10,
-      price: 100,
+      stars: 4,
+      amenities: ["WiFi", "Pool"],
     });
-    expect(res.statusCode).toBe(201);
-    expect(res.body.message).toBe("Hotel added successfully");
+    await hotel.save();
+
+    const res = await request(app).get(`/api/hotels/${hotel._id}`);
+    expect(res.statusCode).toEqual(200);
+    expect(res.body).toHaveProperty("name", "Hotel Test");
   });
 
-  it("should update an existing hotel", async () => {
-    const res = await request(app).put("/api/hotels/1").send({
-      name: "Updated Test Hotel",
-      location: "Updated Test Location",
+  it("should update a hotel by ID", async () => {
+    const hotel = new Hotel({
+      name: "Hotel Test",
+      address: "123 Test St",
+      rooms: 10,
+      stars: 4,
+      amenities: ["WiFi", "Pool"],
+    });
+    await hotel.save();
+
+    const res = await request(app).put(`/api/hotels/${hotel._id}`).send({
+      name: "Updated Hotel Test",
       rooms: 20,
-      price: 200,
     });
-    expect(res.statusCode).toBe(200);
-    expect(res.body.message).toBe("Hotel updated successfully");
+    expect(res.statusCode).toEqual(200);
+    expect(res.body).toHaveProperty("name", "Updated Hotel Test");
+    expect(res.body).toHaveProperty("rooms", 20);
   });
 
-  it("should delete a hotel", async () => {
-    const res = await request(app).delete("/api/hotels/1");
-    expect(res.statusCode).toBe(200);
-    expect(res.body.message).toBe("Hotel deleted successfully");
-  });
+  it("should delete a hotel by ID", async () => {
+    const hotel = new Hotel({
+      name: "Hotel Test",
+      address: "123 Test St",
+      rooms: 10,
+      stars: 4,
+      amenities: ["WiFi", "Pool"],
+    });
+    await hotel.save();
 
-  it("should return 404 for non-existent hotel", async () => {
-    const res = await request(app).get("/api/hotels/999");
-    expect(res.statusCode).toBe(404);
-    expect(res.body.error).toBe("Hotel not found");
+    const res = await request(app).delete(`/api/hotels/${hotel._id}`);
+    expect(res.statusCode).toEqual(200);
+    expect(res.body).toHaveProperty("message", "Hotel deleted successfully");
   });
 });

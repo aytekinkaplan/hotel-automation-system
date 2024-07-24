@@ -1,7 +1,21 @@
+const mongoose = require("mongoose");
 const app = require("./app");
+const config = require("./config");
 
-const PORT = process.env.PORT || 5000;
+// Mongoose strictQuery ayarını buraya ekleyin
+mongoose.set("strictQuery", true);
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+mongoose
+  .connect(config.mongoURI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => {
+    console.log("Connected to MongoDB");
+    app.listen(config.port, () => {
+      console.log(`Server is running on port ${config.port}`);
+    });
+  })
+  .catch((error) => {
+    console.error("Connection error", error.message);
+  });
